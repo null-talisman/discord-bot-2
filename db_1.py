@@ -51,9 +51,8 @@ def main():
         if tbl_exists != True:
           create_score_table = """
           CREATE TABLE discord_scores(
-            name CHAR,
-            score INT,
-            PRIMARY KEY (score)
+            name CHAR(20),
+            score INT
           )
           """
           cursor.execute(create_score_table)
