@@ -2,6 +2,7 @@
 
 import os
 import discord
+from mysql.connector import connect, Error
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -47,10 +48,20 @@ async def on_message(msg):
     for z in words:
         scr = scr + z
 
-    await chn.send(scr)
-
-    # TODO: send athr and scr to db
-
+    # db
+    try:
+        with connect(
+            host="localhost",
+            user="n1lla",
+            database="discord_user_scores"
+        ) as connection:
+            with connection.cursor() as cursor:
+                insert_stmt  = """
+                INSERT INTO discord_scores(name, score) VALUES("{}", "{}");""".format(athr, scr)
+                cursor.execute(insert_stmt)
+                connection.commit()
+    except Error as e:
+        print(e)
 
 # run bot program
 client.run(TOKEN)
