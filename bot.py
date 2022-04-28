@@ -6,53 +6,51 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TOKEN=os.getenv('DISCORD_TOKEN')
-GUILD=os.getenv('DISCORD_GUILD')
+TOKEN = os.getenv('DISCORD_TOKEN')
+GUILD = os.getenv('DISCORD_GUILD')
 
-client=discord.Client()
+client = discord.Client()
+
 
 @client.event
 async def on_message(msg):
 
-    # vars
-    words = []
-    standard_scoring = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, \
-            "i": 9, "j": 10, "k":11, "l": 12, "m": 13, "n": 14, "o": 15, "p": 16, "q": 17, \
-            "r": 18, "s": 19, "t": 20, "u": 21, "v": 21, "w": 22, "x": 23, "y": 24, "z": 25} 
     scr = 0
+    words = []
+    standard_scoring_lower = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8,
+                              "i": 9, "j": 10, "k": 11, "l": 12, "m": 13, "n": 14, "o": 15, "p": 16, "q": 17,
+                              "r": 18, "s": 19, "t": 20, "u": 21, "v": 21, "w": 22, "x": 23, "y": 24, "z": 25}
 
-    # check recursion
+    standard_scoring_upper = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "H": 8,
+                              "I": 9, "J": 10, "K": 11, "L": 12, "M": 13, "N": 14, "O": 15, "P": 16, "Q": 17,
+                              "R": 18, "S": 19, "T": 20, "U": 21, "V": 21, "W": 22, "X": 23, "Y": 24, "Z": 25}
+
     if msg.author == client.user:
         return
 
-    # content, channel, author
-    x    = msg.content
-    chn  = msg.channel
+    x = msg.content
+    chn = msg.channel
     athr = msg.author
 
-    # x
     for i in x:
         if i == " ":
             continue
         else:
-            ctr = 0
-            for y in standard_scoring:
+            for y in standard_scoring_lower:
                 if y == i:
-                    words.append(standard_scoring[y])
-                ctr+=1
+                    words.append(standard_scoring_lower[y])
+            for y in standard_scoring_upper:
+                if y == i:
+                    words.append(standard_scoring_upper[y])
 
     # score
     for z in words:
         scr = scr + z
 
-    # TODO: send athr and scr to db
-    
+    await chn.send(scr)
 
-    # scoring
-    if scr > 100:
-        await chn.send("pog")
-    else:
-        await chn.send("unpog")
+    # TODO: send athr and scr to db
+
 
 # run bot program
 client.run(TOKEN)
