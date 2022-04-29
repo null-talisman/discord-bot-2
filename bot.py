@@ -79,10 +79,5 @@ async def on_message(msg):
     except Error as e:
         print(e)
 
-# TODO: When a user enters "!scoreboard", a visualization of the below query is sent to the channel
-# sql query: SELECT name, SUM(score) FROM discord_scores GROUP BY name;
-#@client.event
-#async def on_message(msg):
-
 # run bot program
 client.run(TOKEN)
