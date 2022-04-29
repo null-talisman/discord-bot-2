@@ -29,6 +29,21 @@ async def on_message(msg):
     if msg.author == client.user:
         return
 
+    if msg.content == '!scoreboard':
+        try:
+            with connect(
+                host="localhost",
+                user="n1lla",
+                database="discord_user_scores"
+            ) as connection:
+                with connection.cursor(buffered=True) as cursor:
+                    qry = "SELECT name, SUM(score) FROM discord_scores GROUP BY name;"
+                    cursor.execute(qry)
+                    scoreboard = cursor.fetchall()
+                    await msg.channel.send(scoreboard)
+        except Error as e:
+            print(e)
+ 
     x = msg.content
     chn = msg.channel
     athr = msg.author
@@ -60,27 +75,14 @@ async def on_message(msg):
                 INSERT INTO discord_scores(name, score) VALUES("{}", "{}");""".format(athr, scr)
                 cursor.execute(insert_stmt)
                 connection.commit()
+                print(scr)
     except Error as e:
         print(e)
 
 # TODO: When a user enters "!scoreboard", a visualization of the below query is sent to the channel
 # sql query: SELECT name, SUM(score) FROM discord_scores GROUP BY name;
-@client.event
-async def on_message(msg):
-    if msg.content == '!scoreboard':
-        try:
-            with connect(
-                host="localhost",
-                user="n1lla",
-                database="discord_user_scores"
-            ) as connection:
-                with connection.cursor(buffered=True) as cursor:
-                    qry = "SELECT name, SUM(score) FROM discord_scores GROUP BY name;"
-                    cursor.execute(qry)
-                    scoreboard = cursor.fetchall()
-                    await msg.channel.send(scoreboard)
-        except Error as e:
-            print(e) 
+#@client.event
+#async def on_message(msg):
 
 # run bot program
 client.run(TOKEN)
