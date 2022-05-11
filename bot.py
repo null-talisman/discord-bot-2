@@ -2,6 +2,7 @@
 
 import os
 import discord
+from connect.db_connect import db_connect
 from mysql.connector import connect, Error
 from dotenv import load_dotenv
 
@@ -10,40 +11,34 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
 
+database=db_connect()
+
 client = discord.Client()
 
 
 @client.event
 async def on_message(msg):
-
     scr = 0
     words = []
-    standard_scoring_lower = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8,
-                              "i": 9, "j": 10, "k": 11, "l": 12, "m": 13, "n": 14, "o": 15, "p": 16, "q": 17,
-                              "r": 18, "s": 19, "t": 20, "u": 21, "v": 21, "w": 22, "x": 23, "y": 24, "z": 25}
 
-    standard_scoring_upper = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "H": 8,
-                              "I": 9, "J": 10, "K": 11, "L": 12, "M": 13, "N": 14, "O": 15, "P": 16, "Q": 17,
-                              "R": 18, "S": 19, "T": 20, "U": 21, "V": 21, "W": 22, "X": 23, "Y": 24, "Z": 25}
-
+    # ignore bot msgs
     if msg.author == client.user:
         return
 
+    # scoreboard
     if msg.content == '!scoreboard':
         try:
-            with connect(
-                host="localhost",
-                user="n1lla",
-                database="discord_user_scores"
-            ) as connection:
-                with connection.cursor(buffered=True) as cursor:
-                    qry = "SELECT name, SUM(score) FROM discord_scores GROUP BY name;"
-                    cursor.execute(qry)
-                    scoreboard = cursor.fetchall()
-                    await msg.channel.send(scoreboard)
+            # TODO: validate sql inputs
+            qry = "SELECT name, SUM(score) FROM discord_scores GROUP BY name;"
+            cursor = database.cursor()
+            cursor.execute(qry)
+            scoreboard = cursor.fetchall()
+            await msg.channel.send(scoreboard)
         except Error as e:
             print(e)
- 
+        return
+
+    # get msg score
     x = msg.content
     chn = msg.channel
     athr = msg.author
@@ -52,32 +47,19 @@ async def on_message(msg):
         if i == " ":
             continue
         else:
-            for y in standard_scoring_lower:
-                if y == i:
-                    words.append(standard_scoring_lower[y])
-            for y in standard_scoring_upper:
-                if y == i:
-                    words.append(standard_scoring_upper[y])
+            scr = scr + ord(i)
 
-    # score
-    for z in words:
-        scr = scr + z
-
-    # db
+    # upload to db
     try:
-        with connect(
-            host="localhost",
-            user="n1lla",
-            database="discord_user_scores"
-        ) as connection:
-            with connection.cursor() as cursor:
-                insert_stmt  = """
-                INSERT INTO discord_scores(name, score) VALUES("{}", "{}");""".format(athr, scr)
-                cursor.execute(insert_stmt)
-                connection.commit()
-                print(scr)
+        # TODO: validate sql input
+        qry = """INSERT INTO discord_scores(name, score) VALUES("{}", "{}");""".format(athr, scr)
+        cursor = database.cursor()
+        cursor.execute(qry)
+        database.commit()
+        print(scr)
     except Error as e:
         print(e)
+
 
 # run bot program
 client.run(TOKEN)
