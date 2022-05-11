@@ -2,7 +2,7 @@
 
 import os
 import discord
-from connect.db_connect import db_connect
+from db.db_connect import db_connect
 from mysql.connector import connect, Error
 from dotenv import load_dotenv
 
