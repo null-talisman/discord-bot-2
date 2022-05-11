@@ -32,8 +32,11 @@ async def on_message(msg):
             qry = "SELECT name, SUM(score) FROM discord_scores GROUP BY name;"
             cursor = database.cursor()
             cursor.execute(qry)
-            scoreboard = cursor.fetchall()
-            await msg.channel.send(scoreboard)
+            scoreboard = str(cursor.fetchall())
+            usr_name = scoreboard[3:scoreboard.index("#")]
+            usr_scr = scoreboard[scoreboard.index(",")+11:-4]
+            usr_res = usr_name + ", your current score is " + usr_scr
+            await msg.channel.send(usr_res)
         except Error as e:
             print(e)
         return
@@ -42,7 +45,7 @@ async def on_message(msg):
     x = msg.content
     chn = msg.channel
     athr = msg.author
-
+    time = msg.created_at
     for i in x:
         if i == " ":
             continue
@@ -52,11 +55,10 @@ async def on_message(msg):
     # upload to db
     try:
         # TODO: validate sql input
-        qry = """INSERT INTO discord_scores(name, score) VALUES("{}", "{}");""".format(athr, scr)
+        qry = """INSERT INTO discord_scores(name, score, time) VALUES("{}", "{}", "{}");""".format(athr, scr, time)
         cursor = database.cursor()
         cursor.execute(qry)
         database.commit()
-        print(scr)
     except Error as e:
         print(e)
 
